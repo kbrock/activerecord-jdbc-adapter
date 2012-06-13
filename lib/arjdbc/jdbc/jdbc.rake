@@ -83,7 +83,7 @@ namespace :db do
         end
 
         ActiveRecord::Base.establish_connection(config.merge({'database' => nil, 'url' => url}))
-        ActiveRecord::Base.connection.create_database(config['database'])
+        ActiveRecord::Base.connection.create_database(config['database'], config)
         ActiveRecord::Base.establish_connection(config)
       rescue => e
         raise e unless config['adapter'] =~ /mysql|postgresql|sqlite/

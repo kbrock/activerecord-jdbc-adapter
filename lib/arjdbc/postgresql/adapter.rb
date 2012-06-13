@@ -472,7 +472,26 @@ module ::ArJdbc
     end
 
     def create_database(name, options = {})
-      execute "CREATE DATABASE \"#{name}\" ENCODING='#{options[:encoding] || 'utf8'}'"
+      options = options.reverse_merge(:encoding => "utf8")
+
+      option_string = options.symbolize_keys.sum do |key, value|
+        case key
+          when :owner
+            " OWNER = \"#{value}\""
+          when :template
+            " TEMPLATE = \"#{value}\""
+          when :encoding
+            " ENCODING = '#{value}'"
+          when :tablespace
+            " TABLESPACE = \"#{value}\""
+          when :connection_limit
+            " CONNECTION LIMIT = #{value}"
+          else
+            ""
+        end
+      end
+
+      execute "CREATE DATABASE #{quote_table_name(name)}#{option_string}"
     end
 
     def drop_database(name)

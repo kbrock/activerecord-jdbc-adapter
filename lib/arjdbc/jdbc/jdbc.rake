@@ -125,7 +125,12 @@ namespace :db do
     redefine_task :purge => :environment do
       abcs = ActiveRecord::Base.configurations
       db = find_database_name(abcs['test'])
-      ActiveRecord::Base.connection.recreate_database(db)
+
+      if abcs['test']['adapter'] =~ /postgresql/i
+        ActiveRecord::Base.connection.recreate_database(db, abcs['test'])
+      else
+        ActiveRecord::Base.connection.recreate_database(db)
+      end
     end
   end
 end

@@ -466,9 +466,9 @@ module ::ArJdbc
       Integer(select_value("SELECT currval('#{sequence_name}')"))
     end
 
-    def recreate_database(name)
+    def recreate_database(name, options = {})
       drop_database(name)
-      create_database(name)
+      create_database(name, options)
     end
 
     def create_database(name, options = {})

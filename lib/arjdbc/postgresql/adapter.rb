@@ -148,7 +148,7 @@ module ::ArJdbc
           # Object identifier types
         when 'oid' then :integer
           # UUID type
-        when 'uuid' then :string
+        when 'uuid' then :uuid
           # Small and big integer types
         when /^(?:small|big)int$/ then :integer
           # Pass through all types that are not specific to PostgreSQL.
@@ -175,7 +175,8 @@ module ::ArJdbc
       :binary      => { :name => "bytea" },
       :boolean     => { :name => "boolean" },
       :xml         => { :name => "xml" },
-      :tsvector    => { :name => "tsvector" }
+      :tsvector    => { :name => "tsvector" },
+      :uuid        => { :name => "uuid" }
     }
 
     def adapter_name #:nodoc:
@@ -860,6 +861,10 @@ module ActiveRecord::ConnectionAdapters
       def tsvector(*args)
         options = args.extract_options!
         column(args[0], "tsvector", options)
+      end
+
+      def uuid(name, options = {})
+        column(name, 'uuid', options)
       end
     end
 

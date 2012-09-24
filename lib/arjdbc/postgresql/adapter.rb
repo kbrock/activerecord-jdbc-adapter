@@ -152,7 +152,7 @@ module ::ArJdbc
           # Object identifier types
         when 'oid' then :integer
           # UUID type
-        when 'uuid' then :string
+        when 'uuid' then :uuid
           # Small and big integer types
         when /^(?:small|big)int$/ then :integer
           # Pass through all types that are not specific to PostgreSQL.
@@ -179,7 +179,8 @@ module ::ArJdbc
       :binary      => { :name => "bytea" },
       :boolean     => { :name => "boolean" },
       :xml         => { :name => "xml" },
-      :tsvector    => { :name => "tsvector" }
+      :tsvector    => { :name => "tsvector" },
+      :uuid        => { :name => "uuid" }
     }
 
     def adapter_name #:nodoc:
@@ -519,16 +520,32 @@ module ::ArJdbc
       Integer(select_value("SELECT currval('#{sequence_name}')"))
     end
 
-    def recreate_database(name)
+    def recreate_database(name, options = {})
       drop_database(name)
-      create_database(name)
+      create_database(name, options)
     end
 
     def create_database(name, options = {})
-      options = options.with_indifferent_access
-      create_query = "CREATE DATABASE \"#{name}\" ENCODING='#{options[:encoding] || 'utf8'}'"
-      create_query << " TEMPLATE=#{options[:template]}" if options[:template].present?
-      execute create_query
+      options = options.reverse_merge(:encoding => "utf8")
+
+      option_string = options.symbolize_keys.sum do |key, value|
+        case key
+          when :owner
+            " OWNER = \"#{value}\""
+          when :template
+            " TEMPLATE = \"#{value}\""
+          when :encoding
+            " ENCODING = '#{value}'"
+          when :tablespace
+            " TABLESPACE = \"#{value}\""
+          when :connection_limit
+            " CONNECTION LIMIT = #{value}"
+          else
+            ""
+        end
+      end
+
+      execute "CREATE DATABASE #{quote_table_name(name)}#{option_string}"
     end
 
     def drop_database(name)
@@ -935,6 +952,10 @@ module ActiveRecord::ConnectionAdapters
       def tsvector(*args)
         options = args.extract_options!
         column(args[0], "tsvector", options)
+      end
+
+      def uuid(name, options = {})
+        column(name, 'uuid', options)
       end
     end
 

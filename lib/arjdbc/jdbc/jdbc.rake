@@ -83,7 +83,7 @@ namespace :db do
         end
 
         ActiveRecord::Base.establish_connection(config.merge({'database' => nil, 'url' => url}))
-        ActiveRecord::Base.connection.create_database(config['database'])
+        ActiveRecord::Base.connection.create_database(config['database'], config)
         ActiveRecord::Base.establish_connection(config)
       rescue => e
         raise e unless config['adapter'] =~ /mysql|postgresql|sqlite/
@@ -135,7 +135,12 @@ namespace :db do
     redefine_task :purge => :environment do
       abcs = ActiveRecord::Base.configurations
       db = find_database_name(abcs['test'])
-      ActiveRecord::Base.connection.recreate_database(db)
+
+      if abcs['test']['adapter'] =~ /postgresql/i
+        ActiveRecord::Base.connection.recreate_database(db, abcs['test'])
+      else
+        ActiveRecord::Base.connection.recreate_database(db)
+      end
     end
   end
 end

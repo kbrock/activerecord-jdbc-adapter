@@ -17,7 +17,7 @@ class CreateNativeTypeMappingTestSchema < ActiveRecord::Migration
                "interval_should_be_string interval",
                "bigint_should_be_integer bigint"
               ]
-    columns << "uuid_should_be_string uuid" if PG_VERSION >= 80300
+    columns << "uuid_should_be_uuid uuid" if PG_VERSION >= 80300
     table_sql = %Q{
       CREATE TABLE customers (
         #{columns.join(",\n")}
@@ -47,8 +47,8 @@ class PostgresNativeTypeMappingTest < Test::Unit::TestCase
     Customer.columns.detect { |c| c.name == column_name }.type
   end
 
-  def test_uuid_column_should_map_to_string
-    assert_equal :string, column_type("uuid_should_be_string") if PG_VERSION >= 80300
+  def test_uuid_column_should_map_to_uuid
+    assert_equal :uuid, column_type("uuid_should_be_uuid") if PG_VERSION >= 80300
   end
   
   def test_bigint_serial_should_be_mapped_to_integer
